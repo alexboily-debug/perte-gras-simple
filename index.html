@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Coach Perte de Gras</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background-color: #f4f4f4;
-      margin: 0; padding: 0;
-      display: flex; flex-direction: column;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
       height: 100vh;
     }
     #chat {
@@ -53,18 +55,10 @@
       border-radius: 4px;
       cursor: pointer;
     }
-    #apiKeyInput {
-      padding: 10px;
-      margin: 10px;
-      font-size: 14px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
   </style>
 </head>
 <body>
 
-  <input type="text" id="apiKeyInput" placeholder=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 />
   <div id="chat"></div>
 
   <div id="inputArea">
@@ -73,35 +67,26 @@
   </div>
 
   <script>
-    const chat = document.getElementById('chat');
-    const input = document.getElementById('userInput');
-    const apiKeyInput = document.getElementById('apiKeyInput');
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("userInput");
 
-    const systemPrompt = `Ce GPT est un assistant spécialisé en planification de perte de gras, conçu pour créer un plan alimentaire personnalisé basé sur un protocole structuré. Il commence par estimer la dépense énergétique hebdomadaire moyenne d’une personne à partir de ses données personnelles : sexe, poids, taille, âge, fréquence et intensité d’entraînement. Cette dépense est ensuite divisée par 7 pour obtenir une moyenne quotidienne.
+    const systemPrompt = `Ce GPT est un assistant spécialisé en planification de perte de gras [...]`;
 
-Le GPT demande ensuite la durée du cycle de perte de poids désiré, entre 8 et 20 semaines. Puis, il évalue la consommation calorique actuelle de l'utilisateur selon ses habitudes alimentaires. En respectant un protocole précis, il élabore un plan qui :
-
-- Augmente de 200 calories par semaine jusqu’à atteindre la dépense énergétique moyenne quotidienne. Cette phase de stabilisation dure 2 semaines.
-- Ensuite, débute une phase de perte de gras, où les calories diminuent de 200 toutes les deux semaines, en réduisant les glucides, jusqu’à atteindre environ 55 % de la dépense énergétique. Ce niveau est maintenu jusqu’à 20 semaines maximum à partir du début de la réduction.
-- Une fois les 20 semaines atteintes, les calories sont progressivement augmentées sur 4 semaines pour revenir à la dépense énergétique normale.
-
-Le plan alimentaire est généré en respectant autant que possible les préférences alimentaires de la personne, en modifiant surtout la qualité ou la quantité des aliments. Il respecte un apport protéique minimal de 1,8 g/kg de poids santé, le reste des calories étant réparti librement (sauf pendant les réductions, où les glucides sont ciblés).
-
-Le GPT agit comme un coach structuré, méthodique et précis. Il évite les approximations dans les calculs nutritionnels, propose des repas concrets et équilibrés pour chaque phase, et s’assure que les plans alimentaires sont compatibles avec les préférences de l'utilisateur. Il ne dépasse jamais la limite de 20 semaines pour un cycle. Toute demande de perte sur une plus longue durée doit être divisée en plusieurs cycles.
-
-Il pose toutes les questions nécessaires dès le départ pour éviter les allers-retours inutiles. Si des données sont manquantes, il les demande avec précision. Il est aussi capable de récapituler chaque phase du protocole avec les ajustements caloriques et les menus types associés.`;
+    function appendMessage(text, sender) {
+      const div = document.createElement("div");
+      div.className = `message ${sender}`;
+      div.innerText = text;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
 
     async function sendMessage() {
       const userMessage = input.value.trim();
+      if (!userMessage) return;
 
-      if (!userMessage || !apiKey) {
-        alert("Veuillez entrer une question ET votre clé API OpenAI.");
-        return;
-      }
-
-      appendMessage(userMessage, 'user');
-      input.value = '';
-      appendMessage("...", 'bot');
+      appendMessage(userMessage, "user");
+      input.value = "";
+      appendMessage("...", "bot");
 
       const messages = [
         { role: "system", content: systemPrompt },
@@ -110,17 +95,15 @@ Il pose toutes les questions nécessaires dès le départ pour éviter les aller
 
       try {
         const response = await fetch("/api/chat", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    messages: messages
-          })
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ messages })
         });
 
         const data = await response.json();
-        const botDivs = document.querySelectorAll('.bot');
+        const botDivs = document.querySelectorAll(".bot");
         const lastBot = botDivs[botDivs.length - 1];
 
         if (data.choices && data.choices.length > 0) {
@@ -131,19 +114,12 @@ Il pose toutes les questions nécessaires dès le départ pour éviter les aller
           lastBot.innerText = "Erreur de réponse inconnue.";
         }
       } catch (err) {
-        const botDivs = document.querySelectorAll('.bot');
+        const botDivs = document.querySelectorAll(".bot");
         const lastBot = botDivs[botDivs.length - 1];
         lastBot.innerText = "Erreur réseau : " + err.message;
       }
     }
-
-    function appendMessage(text, sender) {
-      const div = document.createElement('div');
-      div.className = `message ${sender}`;
-      div.innerText = text;
-      chat.appendChild(div);
-      chat.scrollTop = chat.scrollHeight;
-    }
   </script>
 </body>
 </html>
+
