@@ -10,6 +10,8 @@ export default async function handler(req, res) {
   }
 
   try {
+    const body = await req.json();  // ✅ Important pour parser le JSON
+
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -18,7 +20,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
-        messages: req.body.messages,
+        messages: body.messages,
         temperature: 0.7
       })
     });
