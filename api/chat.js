@@ -1,16 +1,25 @@
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Méthode non autorisée' });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Méthode non autorisée" });
   }
 
   const apiKey = process.env.OPENAI_API_KEY;
-
   if (!apiKey) {
-    return res.status(500).json({ error: 'Clé API OpenAI manquante' });
+    return res.status(500).json({ error: "Clé API OpenAI manquante" });
   }
 
   try {
-    const body = await req.json();  // ✅ Important pour parser le JSON
+    // ✅ Lire le corps de la requête manuellement
+    let body = "";
+    await new Promise((resolve, reject) => {
+      req.on("data", chunk => {
+        body += chunk;
+      });
+      req.on("end", () => resolve());
+      req.on("error", err => reject(err));
+    });
+
+    const parsedBody = JSON.parse(body);
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -20,7 +29,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
-        messages: body.messages,
+        messages: parsedBody.messages,
         temperature: 0.7
       })
     });
