@@ -70,7 +70,19 @@
     const chat = document.getElementById("chat");
     const input = document.getElementById("userInput");
 
-    const systemPrompt = `Ce GPT est un assistant spécialisé en planification de perte de gras [...]`;
+    const systemPrompt = `Ce GPT est un assistant spécialisé en planification de perte de gras, conçu pour créer un plan alimentaire personnalisé basé sur un protocole structuré. Il commence par estimer la dépense énergétique hebdomadaire moyenne d’une personne à partir de ses données personnelles : sexe, poids, taille, âge, fréquence et intensité d’entraînement. Cette dépense est ensuite divisée par 7 pour obtenir une moyenne quotidienne.
+
+Le GPT demande ensuite la durée du cycle de perte de poids désiré, entre 8 et 20 semaines. Puis, il évalue la consommation calorique actuelle de l'utilisateur selon ses habitudes alimentaires. En respectant un protocole précis, il élabore un plan qui :
+
+- Augmente de 200 calories par semaine jusqu’à atteindre la dépense énergétique moyenne quotidienne. Cette phase de stabilisation dure 2 semaines.
+- Ensuite, débute une phase de perte de gras, où les calories diminuent de 200 toutes les deux semaines, en réduisant les glucides, jusqu’à atteindre environ 55 % de la dépense énergétique. Ce niveau est maintenu jusqu’à 20 semaines maximum à partir du début de la réduction.
+- Une fois les 20 semaines atteintes, les calories sont progressivement augmentées sur 4 semaines pour revenir à la dépense énergétique normale.
+
+Le plan alimentaire est généré en respectant autant que possible les préférences alimentaires de la personne, en modifiant surtout la qualité ou la quantité des aliments. Il respecte un apport protéique minimal de 1,8 g/kg de poids santé, le reste des calories étant réparti librement (sauf pendant les réductions, où les glucides sont ciblés).
+
+Le GPT agit comme un coach structuré, méthodique et précis. Il évite les approximations dans les calculs nutritionnels, propose des repas concrets et équilibrés pour chaque phase, et s’assure que les plans alimentaires sont compatibles avec les préférences de l'utilisateur. Il ne dépasse jamais la limite de 20 semaines pour un cycle. Toute demande de perte sur une plus longue durée doit être divisée en plusieurs cycles.
+
+Il pose toutes les questions nécessaires dès le départ pour éviter les allers-retours inutiles. Si des données sont manquantes, il les demande avec précision. Il est aussi capable de récapituler chaque phase du protocole avec les ajustements caloriques et les menus types associés.`;
 
     function appendMessage(text, sender) {
       const div = document.createElement("div");
@@ -86,7 +98,13 @@
 
       appendMessage(userMessage, "user");
       input.value = "";
-      appendMessage("...", "bot");
+
+      // Crée un placeholder pour la réponse du bot
+      const placeholder = document.createElement("div");
+      placeholder.className = "message bot";
+      placeholder.innerText = "...";
+      chat.appendChild(placeholder);
+      chat.scrollTop = chat.scrollHeight;
 
       const messages = [
         { role: "system", content: systemPrompt },
@@ -103,23 +121,19 @@
         });
 
         const data = await response.json();
-        const botDivs = document.querySelectorAll(".bot");
-        const lastBot = botDivs[botDivs.length - 1];
+        console.log("Réponse OpenAI :", data);
 
-        if (data.choices && data.choices.length > 0) {
-          lastBot.innerText = data.choices[0].message.content;
+        if (data && data.choices && data.choices.length > 0 && data.choices[0].message) {
+          placeholder.innerText = data.choices[0].message.content;
         } else if (data.error) {
-          lastBot.innerText = "Erreur OpenAI : " + data.error.message;
+          placeholder.innerText = "Erreur OpenAI : " + (data.error.message || JSON.stringify(data.error));
         } else {
-          lastBot.innerText = "Erreur de réponse inconnue.";
+          placeholder.innerText = "Erreur : réponse vide ou inattendue.";
         }
       } catch (err) {
-        const botDivs = document.querySelectorAll(".bot");
-        const lastBot = botDivs[botDivs.length - 1];
-        lastBot.innerText = "Erreur réseau : " + err.message;
+        placeholder.innerText = "Erreur réseau : " + err.message;
       }
     }
   </script>
 </body>
 </html>
-
