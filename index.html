@@ -69,6 +69,12 @@
   <script>
     const chat = document.getElementById("chat");
     const input = document.getElementById("userInput");
+    input.addEventListener("keydown", function (event) {
+  if (event.key === "Enter") {
+    event.preventDefault(); // Empêche le saut de ligne
+    sendMessage(); // Appelle la fonction d'envoi
+  }
+});
 
     const systemPrompt = `Ce GPT est un assistant spécialisé en planification de perte de gras, conçu pour créer un plan alimentaire personnalisé basé sur un protocole structuré. Il commence par estimer la dépense énergétique hebdomadaire moyenne d’une personne à partir de ses données personnelles : sexe, poids, taille, âge, fréquence et intensité d’entraînement. Cette dépense est ensuite divisée par 7 pour obtenir une moyenne quotidienne.
 
