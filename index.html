@@ -7,7 +7,8 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
 
     body {
-      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+                   "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: #f4f4f4;
       margin: 0;
       padding: 0;
@@ -86,62 +87,55 @@
   </div>
 
   <script>
-  const chat = document.getElementById("chat");
-  const input = document.getElementById("userInput");
+    // ==== RÉFÉRENCES DOM ====
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("userInput");
 
-  // 1️⃣ Affiche la bulle d'accueil
-  appendMessage(
-    `Salut ! Je suis ici pour t'aider à construire un plan alimentaire sur mesure pour t’aider à éliminer du poids selon un protocole très précis conçu par Alex Boily.\n\n` +
-    `Peux-tu d’abord me donner les informations suivantes pour que je puisse calculer ton besoin calorique quotidien :\n` +
-    `- Âge :\n` +
-    `- Poids :\n` +
-    `- Sexe :\n` +
-    `- Taille :\n` +
-    `- Décris-moi tes habitudes d’activités physiques (combien d’heures par semaine, le type d’activité et le niveau d’intensité)`
-  , "bot");
+    // ==== 1) BULLE D'ACCUEIL AFFICHÉE UNE SEULE FOIS ====
+    appendMessage(
+      `Salut ! Je suis ici pour t'aider à construire un plan alimentaire sur mesure pour t’aider à éliminer du poids selon un protocole très précis conçu par Alex Boily.\n\n` +
+      `Peux-tu d’abord me donner les informations suivantes pour que je puisse calculer ton besoin calorique quotidien :\n` +
+      `- Âge :\n` +
+      `- Poids :\n` +
+      `- Sexe :\n` +
+      `- Taille :\n` +
+      `- Décris-moi tes habitudes d’activités physiques (heures/semaine, type et intensité)\n`,
+      "bot"
+    );
 
-  input.addEventListener("keydown", function (event) {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      sendMessage();
-    }
-  });
+    // ==== 2) CLAVIER ENTER POUR ENVOYER (SHIFT+ENTER pour new line) ====
+    input.addEventListener("keydown", function(event) {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+      }
+    });
 
+    // ==== 3) DÉFINITION DU systemPrompt (SANS MESSAGE D'ACCUEIL) ====
     const systemPrompt = `Tu es un assistant intelligent conçu pour aider les gens à perdre du poids selon un protocole structuré développé par Alex Boily.
 
-Voici comment tu fonctionnes :
-1. Tu accueilles d’abord la personne avec ce message (ne pas attendre l'entrée utilisateur) :
+Voici le protocole :
+1. Calcule la dépense énergétique journalière moyenne (DEJM) avec l’âge, le poids, le sexe, la taille et l’activité physique.
+2. Demande ensuite les habitudes alimentaires journalières (petit-déjeuner, déjeuner, dîner, collations) avec quantités approximatives.
+3. Estime la consommation calorique moyenne actuelle.
+4. Construit un plan alimentaire de 12 semaines :
+   - Semaines 1–2 : +200 kcal par rapport à la consommation actuelle.
+   - Puis +200 kcal chaque semaine jusqu’à atteindre 100 % de la DEJM.
+   - Ensuite, –200 kcal toutes les 2 semaines jusqu’à un minimum de 65 % de la DEJM.
+   - Si 65 % est atteint avant la semaine 12, maintiens ce niveau jusqu’à la fin du cycle.
+5. Le plan doit respecter :
+   - Le nombre de repas/collations habituels.
+   - Un apport protéique de 2 g/kg de poids santé.
+   - Le reste des calories réparti entre glucides et lipides.
+6. Si des infos manquent, tu les demandes une à une.
+7. Toujours en français, ton chaleureux, professionnel, structuré.`;
 
-"Salut ! Je suis ici pour t'aider à construire un plan alimentaire sur mesure pour t’aider à éliminer du poids selon un protocole très précis conçu par Alex Boily.
+    // ==== 4) HISTORIQUE DE CONVERSATION ====
+    const chatHistory = [
+      { role: "system", content: systemPrompt }
+    ];
 
-Peux-tu d’abord me donner les informations suivantes pour que je puisse calculer ton besoin calorique quotidien :
-- Âge :
-- Poids :
-- Sexe :
-- Taille :
-- Décris-moi tes habitudes d’activités physiques (combien d’heures par semaine, le type d’activité et le niveau d’intensité)"
-
-2. Une fois ces données obtenues, tu calcules la dépense énergétique journalière moyenne (DEJM).
-
-3. Ensuite, tu demandes à la personne de décrire ses habitudes alimentaires journalières (déjeuner, dîner, souper, collations), avec les quantités approximatives.
-
-4. Tu estimes la consommation calorique moyenne de la personne selon ses réponses.
-
-5. Tu construis un plan alimentaire de 12 semaines :
-   - Semaines 1 et 2 : +200 kcal de plus que les habitudes actuelles
-   - Ensuite, augmentation de +200 kcal/semaine jusqu’à atteindre 100 % de la DEJM
-   - Puis, réduction de -200 kcal toutes les deux semaines jusqu’à un minimum de 65 % de la DEJM
-   - Si le seuil de 65 % est atteint avant la 12e semaine, on maintient cette valeur jusqu’à la fin du cycle
-
-6. Le plan alimentaire :
-   - Doit refléter le nombre de repas et collations habituels
-   - Doit ressembler aux repas habituels (ajustement des portions ou qualité des aliments)
-   - Doit respecter un apport de 2 g de protéines/kg de poids santé
-   - Le reste des calories est réparti librement entre glucides et lipides
-
-7. Si des informations sont manquantes, tu les demandes une à une avec clarté.
-8. Tu communiques toujours en français, avec un ton professionnel, chaleureux et structuré.
-9. Tu guides la personne tout au long du processus sans jamais sauter d’étape.`;
+    // ==== 5) FONCTIONS ====
 
     function appendMessage(text, sender) {
       const div = document.createElement("div");
@@ -155,36 +149,36 @@ Peux-tu d’abord me donner les informations suivantes pour que je puisse calcul
       const userMessage = input.value.trim();
       if (!userMessage) return;
 
+      // affiche l'utilisateur
       appendMessage(userMessage, "user");
       input.value = "";
 
+      // ajoute au contexte
+      chatHistory.push({ role: "user", content: userMessage });
+
+      // placeholder bot
       const placeholder = document.createElement("div");
       placeholder.className = "message bot";
       placeholder.innerText = "...";
       chat.appendChild(placeholder);
       chat.scrollTop = chat.scrollHeight;
 
-      const messages = [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userMessage }
-      ];
-
       try {
-        const response = await fetch("/api/chat", {
+        // appel API avec tout l'historique
+        const res = await fetch("/api/chat", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ messages })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: chatHistory })
         });
+        const data = await res.json();
 
-        const data = await response.json();
-        console.log("Réponse OpenAI :", data);
-
-        if (data && data.choices && data.choices.length > 0 && data.choices[0].message) {
-          placeholder.innerText = data.choices[0].message.content;
+        // récupère et affiche
+        const reply = data.choices?.[0]?.message?.content?.trim();
+        if (reply) {
+          chatHistory.push({ role: "assistant", content: reply });
+          placeholder.innerText = reply;
         } else if (data.error) {
-          placeholder.innerText = "Erreur OpenAI : " + (data.error.message || JSON.stringify(data.error));
+          placeholder.innerText = "Erreur OpenAI : " + data.error.message;
         } else {
           placeholder.innerText = "Erreur : réponse vide ou inattendue.";
         }
