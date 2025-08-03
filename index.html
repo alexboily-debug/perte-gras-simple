@@ -86,15 +86,26 @@
   </div>
 
   <script>
-    const chat = document.getElementById("chat");
-    const input = document.getElementById("userInput");
+  const chat = document.getElementById("chat");
+  const input = document.getElementById("userInput");
 
-    input.addEventListener("keydown", function (event) {
-      if (event.key === "Enter" && !event.shiftKey) {
-        event.preventDefault();
-        sendMessage();
-      }
-    });
+  // 1️⃣ Affiche la bulle d'accueil
+  appendMessage(
+    `Salut ! Je suis ici pour t'aider à construire un plan alimentaire sur mesure pour t’aider à éliminer du poids selon un protocole très précis conçu par Alex Boily.\n\n` +
+    `Peux-tu d’abord me donner les informations suivantes pour que je puisse calculer ton besoin calorique quotidien :\n` +
+    `- Âge :\n` +
+    `- Poids :\n` +
+    `- Sexe :\n` +
+    `- Taille :\n` +
+    `- Décris-moi tes habitudes d’activités physiques (combien d’heures par semaine, le type d’activité et le niveau d’intensité)`
+  , "bot");
+
+  input.addEventListener("keydown", function (event) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      sendMessage();
+    }
+  });
 
     const systemPrompt = `Tu es un assistant intelligent conçu pour aider les gens à perdre du poids selon un protocole structuré développé par Alex Boily.
 
