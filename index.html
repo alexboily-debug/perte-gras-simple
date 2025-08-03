@@ -87,11 +87,11 @@
   </div>
 
   <script>
-    // ==== RÉFÉRENCES DOM ====
+    // Références DOM
     const chat = document.getElementById("chat");
     const input = document.getElementById("userInput");
 
-    // ==== 1) BULLE D'ACCUEIL AFFICHÉE UNE SEULE FOIS ====
+    // 1) Bulle d'accueil unique
     appendMessage(
       `Salut ! Je suis ici pour t'aider à construire un plan alimentaire sur mesure pour t’aider à éliminer du poids selon un protocole très précis conçu par Alex Boily.\n\n` +
       `Peux-tu d’abord me donner les informations suivantes pour que je puisse calculer ton besoin calorique quotidien :\n` +
@@ -103,7 +103,7 @@
       "bot"
     );
 
-    // ==== 2) CLAVIER ENTER POUR ENVOYER (SHIFT+ENTER pour new line) ====
+    // 2) Envoi au "Enter" (Shift+Enter = nouvelle ligne)
     input.addEventListener("keydown", function(event) {
       if (event.key === "Enter" && !event.shiftKey) {
         event.preventDefault();
@@ -111,32 +111,36 @@
       }
     });
 
-    // ==== 3) DÉFINITION DU systemPrompt (SANS MESSAGE D'ACCUEIL) ====
-    const systemPrompt = `Tu es un assistant intelligent conçu pour aider les gens à perdre du poids selon un protocole structuré développé par Alex Boily.
+    // 3) Instructions système (systemPrompt) — sans message d’accueil
+    const systemPrompt = `Tu es un assistant expert en nutrition et en calcul de dépense énergétique.
+    
+**Important :** pour chaque calcul de DEJM (Dépense Énergétique Journalière Moyenne), tu dois :
+1. Calculer d’abord le BMR (métabolisme de base) via la formule de Mifflin-St Jeor :
+   - Hommes : BMR = 10×poids(kg) + 6.25×taille(cm) – 5×âge + 5
+   - Femmes : BMR = 10×poids(kg) + 6.25×taille(cm) – 5×âge – 161
+2. Déterminer ensuite le PAL (Physical Activity Level) en fonction du niveau d’activité :
+   - Sédentaire : PAL≈1.2
+   - Activité légère : PAL≈1.375
+   - Activité modérée : PAL≈1.55
+   - Activité intense/triathlon : PAL≈1.7–1.9 (à préciser par l’utilisateur)
+3. Enfin, calculer **DEJM = BMR × PAL** (et non pas uniquement BMR).
 
-Voici le protocole :
-1. Calcule la dépense énergétique journalière moyenne (DEJM) avec l’âge, le poids, le sexe, la taille et l’activité physique.
-2. Demande ensuite les habitudes alimentaires journalières (petit-déjeuner, déjeuner, dîner, collations) avec quantités approximatives.
-3. Estime la consommation calorique moyenne actuelle.
-4. Construit un plan alimentaire de 12 semaines :
-   - Semaines 1–2 : +200 kcal par rapport à la consommation actuelle.
-   - Puis +200 kcal chaque semaine jusqu’à atteindre 100 % de la DEJM.
-   - Ensuite, –200 kcal toutes les 2 semaines jusqu’à un minimum de 65 % de la DEJM.
-   - Si 65 % est atteint avant la semaine 12, maintiens ce niveau jusqu’à la fin du cycle.
-5. Le plan doit respecter :
-   - Le nombre de repas/collations habituels.
-   - Un apport protéique de 2 g/kg de poids santé.
-   - Le reste des calories réparti entre glucides et lipides.
-6. Si des infos manquent, tu les demandes une à une.
-7. Toujours en français, ton chaleureux, professionnel, structuré.`;
+### Protocole de création du plan sur 12 semaines :
+- **Semaines 1–2** : calories = consommation actuelle + 200 kcal  
+- **Semaines 3–?** : +200 kcal/semaine jusqu’à atteindre 100 % DEJM  
+- **Ensuite** : –200 kcal toutes les 2 semaines jusqu’à un minimum de 65 % DEJM  
+- **Si 65 % est atteint avant la semaine 12**, maintenir ce niveau jusqu’à la fin du cycle  
 
-    // ==== 4) HISTORIQUE DE CONVERSATION ====
+Le plan doit respecter les repas/collations usuels, viser 2 g de protéines/kg de poids santé, et répartir le reste en glucides/lipides.
+
+Si des données manquent, tu les demandes une à une. Toujours en français, ton chaleureux et structuré.`;
+
+    // 4) Historique de la conversation
     const chatHistory = [
       { role: "system", content: systemPrompt }
     ];
 
-    // ==== 5) FONCTIONS ====
-
+    // 5) appendMessage
     function appendMessage(text, sender) {
       const div = document.createElement("div");
       div.className = `message ${sender}`;
@@ -145,18 +149,19 @@ Voici le protocole :
       chat.scrollTop = chat.scrollHeight;
     }
 
+    // 6) sendMessage
     async function sendMessage() {
       const userMessage = input.value.trim();
       if (!userMessage) return;
 
-      // affiche l'utilisateur
+      // Affiche l'utilisateur
       appendMessage(userMessage, "user");
       input.value = "";
 
-      // ajoute au contexte
+      // Ajoute au contexte
       chatHistory.push({ role: "user", content: userMessage });
 
-      // placeholder bot
+      // Placeholder bot
       const placeholder = document.createElement("div");
       placeholder.className = "message bot";
       placeholder.innerText = "...";
@@ -164,7 +169,6 @@ Voici le protocole :
       chat.scrollTop = chat.scrollHeight;
 
       try {
-        // appel API avec tout l'historique
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -172,7 +176,7 @@ Voici le protocole :
         });
         const data = await res.json();
 
-        // récupère et affiche
+        // Récupère la réponse
         const reply = data.choices?.[0]?.message?.content?.trim();
         if (reply) {
           chatHistory.push({ role: "assistant", content: reply });
